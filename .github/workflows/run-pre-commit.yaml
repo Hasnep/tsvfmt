@@ -1,0 +1,34 @@
+name: Run pre-commit
+
+on:
+  # Run on all PRs
+  pull_request:
+  # Run when a PR is merged into main
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  run-pre-commit:
+    name: Run pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@5bb6a3b3abe66fd09bbf250dce8ada94f856a703 # ratchet:nixbuild/nix-quick-install-action@v30
+      - name: Cache Nix environment
+        uses: nix-community/cache-nix-action@135667ec418502fa5a3598af6fb9eb733888ce6a # ratchet:nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+      - name: Use Nix dev shell for subsequent steps
+        uses: rrbutani/use-nix-shell-action@59a52b2b9bbfe3cc0e7deb8f9059abe37a439edf # ratchet:rrbutani/use-nix-shell-action@v1
+      - name: Run Pre-commit
+        run: pre-commit run --all-files
+        env:
+          # Prevent this action failing when running on the main branch
+          SKIP: no-commit-to-branch
