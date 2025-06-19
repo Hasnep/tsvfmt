@@ -76,15 +76,20 @@
               [ pkgs.zig ]
               # Pre-commit
               ++ [
+                # keep-sorted start
                 pkgs.actionlint
+                pkgs.deadnix
                 pkgs.fd
                 pkgs.just
+                pkgs.keep-sorted
                 pkgs.markdownlint-cli2
                 pkgs.nixfmt-rfc-style
+                pkgs.nodePackages.prettier
                 pkgs.pre-commit
                 pkgs.python312Packages.pre-commit-hooks
                 pkgs.ratchet
                 pkgs.zizmor
+                # keep-sorted end
               ];
             shellHook = "pre-commit install --overwrite";
           };
