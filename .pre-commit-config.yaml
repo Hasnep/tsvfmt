@@ -103,3 +103,9 @@ repos:
         types: [text]
         files: ^Justfile$
         pass_filenames: false
+      # Keep sorted
+      - name: Keep sorted
+        id: keep-sorted
+        language: system
+        entry: keep-sorted
+        types: [text]
