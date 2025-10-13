@@ -2,15 +2,14 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    gleam2nix = {
+      url = "git+https://git.isincredibly.gay/srxl/gleam2nix?ref=v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      flake-parts,
-      ...
-    }:
+    inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "aarch64-darwin"
@@ -25,75 +24,59 @@
           pkgs,
           ...
         }:
+        let
+          gleam = pkgs.gleam;
+          erlang = pkgs.beamMinimalPackages.erlang;
+        in
         {
           packages = {
             default = self'.packages.tsvfmt;
-            tsvfmt = pkgs.stdenv.mkDerivation (finalAttrs: {
+            tsvfmt = inputs.gleam2nix.lib.${pkgs.system}.buildGleamApplication {
               pname = "tsvfmt";
-              version = "1.0.0";
-
-              src = ./.;
-
-              nativeBuildInputs = [ pkgs.zig ];
-
-              zigBuildFlags = [ "-Doptimize=ReleaseSafe" ];
-
-              buildPhase = ''
-                runHook preBuild
-
-                # Set up Zig cache directory
-                export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
-                export ZIG_LOCAL_CACHE_DIR=$TMPDIR/zig-local-cache
-
-                # Build the project
-                zig build ${toString finalAttrs.zigBuildFlags}
-
-                runHook postBuild
-              '';
-
-              installPhase = ''
-                runHook preInstall
-
-                mkdir -p $out/bin
-                cp zig-out/bin/tsvfmt $out/bin/
-
-                runHook postInstall
-              '';
-            });
+              version = "2.0.0";
+              src = pkgs.nix-gitignore.gitignoreSource [ ] ./.;
+              gleamNix = import ./gleam.nix;
+              gleam = gleam;
+              erlang = erlang;
+            };
           };
 
           apps = {
             default = self'.apps.tsvfmt;
             tsvfmt = {
               type = "app";
-              program = "${self'.packages.tsvfmt}/bin/tsvfmt";
+              program = pkgs.lib.getExe self'.packages.tsvfmt;
             };
           };
 
           devShells.default = pkgs.mkShell {
             name = "tsvfmt";
-            packages =
-              [ pkgs.zig ]
-              # Pre-commit
-              ++ [
-                # keep-sorted start
-                pkgs.actionlint
-                pkgs.deadnix
-                pkgs.fd
-                pkgs.just
-                pkgs.keep-sorted
-                pkgs.markdownlint-cli2
-                pkgs.nixfmt-rfc-style
-                pkgs.nodePackages.prettier
-                pkgs.pre-commit
-                pkgs.python312Packages.pre-commit-hooks
-                pkgs.ratchet
-                pkgs.zizmor
-                # keep-sorted end
-              ];
+            packages = [
+              gleam
+              pkgs.just
+              erlang # We need escript installed to run the tests
+            ]
+            # Pre-commit
+            ++ [
+              # keep-sorted start
+              inputs'.gleam2nix.packages.gleam2nix
+              pkgs.deadnix
+              pkgs.keep-sorted
+              pkgs.markdownlint-cli2
+              pkgs.nixfmt
+              pkgs.nodePackages.prettier
+              pkgs.omnix
+              pkgs.pre-commit
+              pkgs.python312Packages.pre-commit-hooks
+              pkgs.ratchet
+              pkgs.toml-sort
+              pkgs.typos
+              pkgs.zizmor
+              # keep-sorted end
+            ];
             shellHook = "pre-commit install --overwrite";
           };
-          formatter = pkgs.nixfmt-rfc-style;
+          formatter = pkgs.nixfmt-tree;
         };
     };
 }
