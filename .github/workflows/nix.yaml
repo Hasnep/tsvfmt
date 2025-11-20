@@ -1,4 +1,4 @@
-name: Run tests
+name: Nix
 
 on:
   # Run on all PRs
@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-tests:
-    name: Run tests
+  nix-build:
+    name: Nix build
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
@@ -31,5 +31,5 @@ jobs:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
       - name: Use Nix dev shell for subsequent steps
         uses: rrbutani/use-nix-shell-action@59a52b2b9bbfe3cc0e7deb8f9059abe37a439edf # ratchet:rrbutani/use-nix-shell-action@v1
-      - name: Run tests
-        run: just test
+      - name: Run Omnix
+        run: om ci

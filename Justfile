@@ -1,11 +1,11 @@
-default: fmt test build
+default: check test build
 
-fmt:
-    zig fmt **/*.zig
-    nixfmt flake.nix
+check:
+    pre-commit run --all-files
 
 test:
-    zig build test
+    gleam test
 
 build:
-    zig build
+    gleam build
+    gleam export erlang-shipment

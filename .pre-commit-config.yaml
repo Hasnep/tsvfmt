@@ -41,24 +41,48 @@ repos:
         id: check-added-large-files
         language: system
         entry: check-added-large-files
-      # Zig
-      - name: Format Zig files
-        id: zig-format
+
+      # Gleam
+      - name: Format Gleam files
+        id: gleam-format
         language: system
-        entry: zig fmt
-        types: [zig]
+        entry: gleam format
+        types: [gleam]
+        pass_filenames: false
+      - name: Check Gleam files
+        id: gleam-check
+        language: system
+        entry: gleam check
+        types: [gleam]
+        pass_filenames: false
+      - name: Run gleam2nix
+        id: gleam2nix
+        language: system
+        entry: gleam2nix
+        always_run: true
+        pass_filenames: false
+
       # JSON
       - name: Format JSON files
         id: json-format
         language: system
         entry: prettier --write
         types: [json]
+
       # YAML
       - name: Format YAML files
         id: yaml-format
         language: system
         entry: prettier --write
         types: [yaml]
+
+      # TOML
+      - name: Sort TOML files
+        id: toml-sort
+        language: system
+        entry: toml-sort --in-place --all
+        types: [toml]
+
       # Markdown
       - name: Format markdown files
         id: markdown-format
@@ -71,6 +95,7 @@ repos:
         entry: markdownlint-cli2
         args: [--config, .markdownlint.json]
         types: [markdown]
+
       # GitHub Actions
       - name: Validate GitHub Actions workflow files
         id: github-workflows-check
@@ -84,6 +109,7 @@ repos:
         entry: ratchet check
         types: [yaml]
         files: ^.github/workflows/
+
       # Nix
       - name: Format Nix files
         id: nix-format
@@ -95,6 +121,7 @@ repos:
         language: system
         entry: deadnix
         types: [nix]
+
       # Just
       - name: Format Just files
         id: just-format
@@ -103,9 +130,17 @@ repos:
         types: [text]
         files: ^Justfile$
         pass_filenames: false
+
       # Keep sorted
       - name: Keep sorted
         id: keep-sorted
         language: system
         entry: keep-sorted
+        types: [text]
+
+      # Typos
+      - name: Check typos
+        id: typos
+        language: system
+        entry: typos
         types: [text]
